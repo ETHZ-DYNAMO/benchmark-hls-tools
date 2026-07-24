@@ -4,7 +4,7 @@ set SRC .
 set DESIGN_NAME fir
 set DYNAMATIC_INC_PATH $DYNAMATIC_PATH/include
 
-open_component -reset solution1 -flow_target vivado
+open_component -reset using_vitis_hls_2024 -flow_target vivado
 add_files $SRC/$DESIGN_NAME.c -cflags "-I$DYNAMATIC_INC_PATH"
 add_files -tb $SRC/$DESIGN_NAME.c -cflags "-I$DYNAMATIC_INC_PATH"
 

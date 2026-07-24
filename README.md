@@ -28,7 +28,7 @@ bash run_dynamatic.sh
 To run the Vitis flow:
 
 ```
-bash run_vitis.sh
+bash run_vitis2024.sh
 ```
 
 ## 3. Read the performance and resources metrics
@@ -44,8 +44,8 @@ Timing (the slack): Go to `out/synth/timing_post_pr.rpt`.
 
 ### Vitis HLS
 
-Latency (logged at the end of the `run_vitis.sh` script): Go to `solution1/hls/sim/report/NAME_cosim.rpt`
-Area: Go to `solution1/hls/impl/verilog/report/NAME_design_analysis_routed.rpt`
-Timing (the slack): Go to `solution1/hls/impl/verilog/report/NAME_timing_paths_routed.rpt`
+Latency (logged at the end of the `run_vitis2024.sh` script): Go to `using_vitis_hls_2024/hls/sim/report/NAME_cosim.rpt`
+Area: Go to `using_vitis_hls_2024/hls/impl/verilog/report/NAME_design_analysis_routed.rpt`
+Timing (the slack): Go to `using_vitis_hls_2024/hls/impl/verilog/report/NAME_timing_paths_routed.rpt`
 
 
