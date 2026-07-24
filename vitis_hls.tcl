@@ -11,7 +11,7 @@ add_files -tb $SRC/$DESIGN_NAME.c -cflags "-I$DYNAMATIC_INC_PATH"
 
 set_top $DESIGN_NAME
 set_part {xc7k160tfbg484-2}
-create_clock -period 4 -name default
+create_clock -period 6 -name default
 
 if { [catch {csim_design} err] } {
   puts "FAIL: catch error in csim."
