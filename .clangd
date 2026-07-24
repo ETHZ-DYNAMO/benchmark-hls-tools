@@ -1,0 +1,8 @@
+CompileFlags:
+  Add: [
+    "-I/tools/Xilinx/Vitis/2024.2/include",
+    "-I/usr/local/share/verilator/include",
+    "-I/usr/local/share/verilator/include/vltstd",
+    "-I/data/dynamatic/include",
+    "-I./obj_dir",
+  ]
