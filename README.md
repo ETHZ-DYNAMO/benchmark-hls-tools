@@ -41,7 +41,9 @@ The benchmarks in `benchmarks/` were copied from Dynamatic's `integration-test/`
 (commit `bfcb8bc2a`) and are maintained here; local changes (e.g. HLS pragmas)
 are tracked in this repo's history. Changes from the original:
 
-- `fir`: `#pragma HLS pipeline` on the loop.
+- All benchmarks: `#pragma HLS pipeline II=1` on each innermost loop (in
+  `matrix_power`, braces were added around the inner loop body). Dynamatic
+  ignores `#pragma HLS`.
 
 To add a benchmark, create `benchmarks/<bench>/<bench>.c` (plus headers) with a
 `main` that calls the kernel via `CALL_KERNEL`.

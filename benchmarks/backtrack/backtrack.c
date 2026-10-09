@@ -12,6 +12,7 @@
 int backtrack(float best[1000], float cost[1000]) {
   int i;
   for (i = 0; i < 1000; i++) {
+#pragma HLS pipeline II=1
     float temp = best[i] + cost[i];
     float x = 5.0;
     bool continueLoop = !((1000 - temp) <= x * (temp));

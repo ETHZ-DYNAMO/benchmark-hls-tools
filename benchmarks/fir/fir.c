@@ -12,7 +12,7 @@
 int fir(in_int_t di[N], in_int_t idx[N]) {
   int tmp = 0;
   for (unsigned i = 0; i < N; i++) {
-#pragma HLS pipeline
+#pragma HLS pipeline II=1
     tmp += idx[i] * di[N_DEC - i];
   }
   return tmp;

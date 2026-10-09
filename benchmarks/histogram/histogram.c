@@ -7,6 +7,7 @@
 void histogram(in_int_t feature[1000], in_float_t weight[1000],
                inout_float_t hist[1000], in_int_t n) {
   for (int i = 0; i < n; ++i) {
+#pragma HLS pipeline II=1
     int m = feature[i];
     float wt = weight[i];
     float x = hist[m];

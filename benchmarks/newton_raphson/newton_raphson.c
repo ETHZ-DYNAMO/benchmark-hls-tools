@@ -21,6 +21,7 @@ int newton_raphson(int rts, int x1, int xh, int df) {
   int i = 0;
   int dx;
   while (i < 100) {
+#pragma HLS pipeline II=1
     int f = 2 * rts - 100;
     i++;
     if (f < 0)

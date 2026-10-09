@@ -13,6 +13,7 @@ int matvec(in_int_t m[N][N], in_int_t v[N], out_int_t out[N]) {
   for (unsigned i = 0; i < N; i++) {
     tmp = 0;
     for (unsigned j = 0; j < N; j++) {
+#pragma HLS pipeline II=1
       tmp += v[j] * m[i][j];
     }
     out[i] = tmp;

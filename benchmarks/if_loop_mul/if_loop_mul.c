@@ -8,6 +8,7 @@ float if_loop_mul(in_float_t a[1000], in_float_t b[1000]) {
   float sum = 1.0;
 
   for (i = 0; i < 1000; i++) {
+#pragma HLS pipeline II=1
     dist = a[i] - b[i];
 
     if (dist >= 0) {
