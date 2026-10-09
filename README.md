@@ -14,6 +14,7 @@ scripts/
   vivado_hls_2019_export.tcl  # export_design step, run under faketime
   run_all.sh               # tools x benchmarks, with timeout + memory cap
   collect_results.py       # reports -> results/summary.csv
+  plot_results.py          # summary.csv -> results/plots/
 build/<tool>/<bench>/      # generated (gitignored)
 results/summary.csv        # one row per (bench, tool)
 results/logs/<tool>/       # per-run logs and exit codes (gitignored)
@@ -64,6 +65,7 @@ Everything (or a subset), then collect results:
 bash scripts/run_all.sh                                   # all tools, all benchmarks
 bash scripts/run_all.sh -j 3 -t dynamatic,vitis_hls_2024 fir matvec
 python3 scripts/collect_results.py                        # re-collect only
+python3 scripts/plot_results.py                           # plots (see below)
 ```
 
 Each run gets `RUN_TIMEOUT` seconds (default 3600) and `RUN_MEM_MAX` memory
@@ -75,8 +77,15 @@ Each run gets `RUN_TIMEOUT` seconds (default 3600) and `RUN_MEM_MAX` memory
 
 - `achieved_cp` = target clock period - worst setup slack
 - `latency_cycles` from cosimulation
-- `exec_time_ns` = latency_cycles * achieved_cp
+- `exec_time_ns` = latency_cycles * achieved_cp (wall-clock time)
 - `LUT`, `FF`, `DSP`, `BRAM`
+
+`scripts/plot_results.py` plots, per baseline (Vitis HLS 2024, Vivado HLS 2019),
+Dynamatic's LUTs vs. latency normalized to the baseline (baseline at (1, 1)),
+once with latency in cycles and once with wall-clock time (`exec_time_ns`):
+`results/plots/dynamatic_vs_<baseline>_LUT_{cycles,wallclock}.{pdf,png}`.
+The Dynamatic commit (recorded per run in `build/dynamatic/<bench>/dynamatic_commit.txt`,
+column `tool_version`) is shown in the figure.
 
 Where the numbers come from (relative to `build/<tool>/<bench>/`):
 

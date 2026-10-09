@@ -31,6 +31,13 @@ mkdir -p "$WORK_DIR"
 cp -r "$SRC_DIR"/. "$WORK_DIR"/
 cd "$WORK_DIR" || exit 1
 
+# Record the Dynamatic commit used ("-dirty" if tracked files are modified).
+{
+  git -C "$DYNAMATIC_PATH" rev-parse --short HEAD | tr -d '\n'
+  git -C "$DYNAMATIC_PATH" diff --quiet HEAD || printf -- '-dirty'
+  echo
+} > dynamatic_commit.txt
+
 # synthesize.sh calls `vivado` and simulate.sh calls `vsim` from PATH.
 export PATH="$VIVADO_PATH/bin:$MODELSIM_PATH/bin:$PATH"
 

@@ -16,7 +16,7 @@ from typing import Any, Callable
 
 REPO = Path(__file__).resolve().parent.parent
 TOOLS = ["dynamatic", "vitis_hls_2024", "vivado_hls_2019"]
-FIELDS = ["bench", "tool", "status", "target_cp", "achieved_cp",
+FIELDS = ["bench", "tool", "tool_version", "status", "target_cp", "achieved_cp",
           "latency_cycles", "exec_time_ns", "LUT", "FF", "DSP", "BRAM"]
 
 
@@ -67,6 +67,14 @@ def bench_top(bench):
     return search(r'^\s*TOP="?([\w]+)"?', cfg, str) or bench
 
 
+def tool_version(tool, bench_dir):
+    """Dynamatic: commit recorded by run_dynamatic.sh; others: tool release."""
+    if tool == "dynamatic":
+        commit = read(bench_dir / "dynamatic_commit.txt")
+        return commit.strip() if commit else None
+    return {"vitis_hls_2024": "2024.2", "vivado_hls_2019": "2019.1"}[tool]
+
+
 def status_of(tool, bench):
     rc = read(REPO / "results/logs" / tool / f"{bench}.status")
     if rc is None:
@@ -104,6 +112,7 @@ def collect(build, target_cp):
             slack = parse_slack(read(timing_f))
             achieved = round(target_cp - slack, 3) if slack is not None else None
             row = {"bench": bench, "tool": tool,
+                   "tool_version": tool_version(tool, bench_dir),
                    "status": status_of(tool, bench), "target_cp": target_cp,
                    "achieved_cp": achieved, "latency_cycles": latency,
                    "exec_time_ns": (round(latency * achieved, 1)
