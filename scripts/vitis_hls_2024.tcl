@@ -1,17 +1,19 @@
-set DYNAMATIC_PATH /data/dynamatic
+# Inputs come from the environment (set by config.sh / load_bench).
+set DYNAMATIC_PATH $::env(DYNAMATIC_PATH)
 
-set SRC .
-set DESIGN_NAME fir
+set SRC $::env(SRC_DIR)
+set BENCH $::env(BENCH)
+set DESIGN_NAME $::env(TOP)
 set DYNAMATIC_INC_PATH $DYNAMATIC_PATH/include
 
 open_component -reset using_vitis_hls_2024 -flow_target vivado
-add_files $SRC/$DESIGN_NAME.c -cflags "-I$DYNAMATIC_INC_PATH"
-add_files -tb $SRC/$DESIGN_NAME.c -cflags "-I$DYNAMATIC_INC_PATH"
+add_files $SRC/$BENCH.c -cflags "-I$DYNAMATIC_INC_PATH"
+add_files -tb $SRC/$BENCH.c -cflags "-I$DYNAMATIC_INC_PATH"
 
 
 set_top $DESIGN_NAME
-set_part {xc7k160tfbg484-2}
-create_clock -period 6 -name default
+set_part $::env(PART)
+create_clock -period $::env(CLOCK_PERIOD) -name default
 
 if { [catch {csim_design} err] } {
   puts "FAIL: catch error in csim."

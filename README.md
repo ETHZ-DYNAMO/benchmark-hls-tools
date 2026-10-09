@@ -1,51 +1,101 @@
 # Comparing Dynamatic vs. Vitis
 
-## 1. List of things to change depending on how you set up Dynamatic and Vitis
-
-### `run_vitis.sh`
-
-Change `VITIS_ENV_SH` (path hardcoded to the default installation path of Vitis).
-
-
-### `vitis_hls.tcl`
-
-Change `DYNAMATIC_PATH` to where you installed Dynamatic (it should have `llvm-project`, `tools`, `lib`, etc... in that location).
-
-
-### `run_dynamatic.sh`
-
-Change `DYNAMATIC_PATH` to where you installed Dynamatic (it should have `llvm-project`, `tools`, `lib`, etc... in that location).
-
-
-## 2. Run simulation and read out the latency
-
-To run the Dynamatic flow:
+## 1. Layout
 
 ```
-bash run_dynamatic.sh
+env.sh                     # EDA tool locations (Dynamatic, Vivado, ModelSim, HLS tools)
+config.sh                  # CLOCK_PERIOD, PART, per-run limits; sources env.sh
+benchmarks/<bench>/        # sources only (<bench>.c [+ <bench>.h] [+ bench.cfg])
+scripts/
+  run_dynamatic.sh <bench>
+  run_vitis_hls_2024.sh <bench>
+  run_vivado_hls_2019.sh <bench>
+  vitis_hls_2024.tcl, vivado_hls_2019.tcl
+  vivado_hls_2019_export.tcl  # export_design step, run under faketime
+  run_all.sh               # tools x benchmarks, with timeout + memory cap
+  collect_results.py       # reports -> results/summary.csv
+build/<tool>/<bench>/      # generated (gitignored)
+results/summary.csv        # one row per (bench, tool)
+results/logs/<tool>/       # per-run logs and exit codes (gitignored)
 ```
 
-To run the Vitis flow:
+## 2. Setup
+
+Edit `env.sh` to point to the EDA tools on your machine (or override from the
+environment):
+
+- `DYNAMATIC_PATH`: where Dynamatic is installed (should have `llvm-project`, `tools`, `lib`, etc.).
+- `VIVADO_PATH`: the Vivado Dynamatic uses for `synthesize` and for `glbl.v` in
+  `simulate` (default 2024.2, the same Vivado that Vitis HLS 2024 uses for implementation).
+- `MODELSIM_PATH`: ModelSim/Questa install providing `bin/vsim`.
+- `VITIS_HLS_2024_PATH`, `VIVADO_HLS_2019_PATH`: install roots of the HLS tools
+  (their `settings64.sh` is sourced by the matching run script).
+
+Experiment parameters live in `config.sh`:
+
+- `CLOCK_PERIOD` (default 6 ns) and `PART` (default `xc7k160tfbg484-2`, the part
+  hardcoded in Dynamatic's `synthesize.sh`) apply to every flow.
+
+The benchmarks in `benchmarks/` were copied from Dynamatic's `integration-test/`
+(commit `bfcb8bc2a`) and are maintained here; local changes (e.g. HLS pragmas)
+are tracked in this repo's history. Changes from the original:
+
+- `fir`: `#pragma HLS pipeline` on the loop.
+
+To add a benchmark, create `benchmarks/<bench>/<bench>.c` (plus headers) with a
+`main` that calls the kernel via `CALL_KERNEL`.
+
+`benchmarks/<bench>/bench.cfg` (optional, sourced by bash) can override `TOP`
+when the kernel name differs from the benchmark name.
+
+## 3. Run
+
+One tool, one benchmark:
 
 ```
-bash run_vitis_2024.sh
+bash scripts/run_dynamatic.sh fir
+bash scripts/run_vitis_hls_2024.sh fir
+bash scripts/run_vivado_hls_2019.sh fir
 ```
 
-## 3. Read the performance and resources metrics
+Everything (or a subset), then collect results:
 
-We want to report the clock period (target - Slack), latency (clock cycles),
-the wall clock time (clock cycles * clock period), the number of LUTs.
+```
+bash scripts/run_all.sh                                   # all tools, all benchmarks
+bash scripts/run_all.sh -j 3 -t dynamatic,vitis_hls_2024 fir matvec
+python3 scripts/collect_results.py                        # re-collect only
+```
 
-### Dynamatic
+Each run gets `RUN_TIMEOUT` seconds (default 3600) and `RUN_MEM_MAX` memory
+(default 8G).
 
-Latency (logged at the end of the `run_dynamatic.sh` script): Go to the end of `out/sim/report.txt`, there is a line with `# ** Note: Simulation done! Latency = XXX cycles`.
-Area (the number of LUTs): Go to `out/synth/utilization_post_pr.rpt`.
-Timing (the slack): Go to `out/synth/timing_post_pr.rpt`.
+## 4. Metrics
 
-### Vitis HLS (version 2024)
+`results/summary.csv` reports, after place & route:
 
-Latency (logged at the end of the `run_vitis_2024.sh` script): Go to `using_vitis_hls_2024/hls/sim/report/NAME_cosim.rpt`
-Area: Go to `using_vitis_hls_2024/hls/impl/verilog/report/NAME_design_analysis_routed.rpt`
-Timing (the slack): Go to `using_vitis_hls_2024/hls/impl/verilog/report/NAME_timing_paths_routed.rpt`
+- `achieved_cp` = target clock period - worst setup slack
+- `latency_cycles` from cosimulation
+- `exec_time_ns` = latency_cycles * achieved_cp
+- `LUT`, `FF`, `DSP`, `BRAM`
 
+Where the numbers come from (relative to `build/<tool>/<bench>/`):
 
+| | Dynamatic | Vitis HLS 2024 | Vivado HLS 2019 |
+|---|---|---|---|
+| Latency | `out/sim/report.txt` (`Latency = N cycles`) | `using_vitis_hls_2024/hls/sim/report/verilog/lat.rpt` | `using_vivado_hls_2019/solution1/sim/report/verilog/lat.rpt` |
+| Area | `out/synth/utilization_post_pr.rpt` | `using_vitis_hls_2024/hls/impl/verilog/report/<top>_utilization_routed.rpt` | `using_vivado_hls_2019/solution1/impl/verilog/report/<top>_utilization_routed.rpt` |
+| Timing | `out/synth/timing_post_pr.rpt` | `using_vitis_hls_2024/hls/impl/verilog/report/<top>_timing_paths_routed.rpt` | `using_vivado_hls_2019/solution1/impl/verilog/report/<top>_timing_paths_routed.rpt` |
+
+## 5. Known issues
+
+- Vivado HLS 2019.1 `export_design` fails after 2021 with `bad lexical cast ...
+  core_revision` (`ERROR: [IMPL 213-28] Failed to generate IP`): the IP
+  revision is the current date as YYMMDDHHMM, which overflows a 32-bit int
+  (Xilinx AR 76960). `run_vivado_hls_2019.sh` therefore runs `export_design`
+  in a second `vivado_hls` call (`vivado_hls_2019_export.tcl`) under
+  `faketime "@2021-12-31 00:00:00"`. csim/cosim run with the real clock because
+  XSim fails to start under faketime. Override the date with
+  `VIVADO_HLS_2019_FAKETIME`, or set it to `""` to disable.
+- `backtrack` and `newton_raphson` contain `#pragma DYN speculate`, which only
+  takes effect in Dynamatic's speculation flow; the plain `compile` used here
+  ignores it.

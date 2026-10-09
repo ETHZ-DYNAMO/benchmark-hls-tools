@@ -1,4 +1,7 @@
 *.log
+/build/
+/results/logs/
+# outputs from the old flat layout
 /out/
 /solution1/
 /using_v*/
