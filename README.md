@@ -90,7 +90,10 @@ Dynamatic's LUTs vs. latency normalized to the baseline (baseline at (1, 1)),
 once with latency in cycles and once with wall-clock time (`exec_time_ns`):
 `results/plots/dynamatic_vs_<baseline>_LUT_{cycles,wallclock}.{pdf,png}`.
 The Dynamatic commit (recorded per run in `build/dynamatic/<bench>/dynamatic_commit.txt`,
-column `tool_version`) is shown in the figure.
+column `tool_version`) is shown in the figure. Dynamatic's points are grouped
+by benchmark category (memory dependencies, control dependencies, speculative,
+no dependencies; `CATEGORIES` in the script), each with its own color and
+marker.
 
 Where the numbers come from (relative to `build/<tool>/<bench>/`):
 

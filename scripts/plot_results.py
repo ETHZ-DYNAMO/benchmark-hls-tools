@@ -31,8 +31,19 @@ BASELINES = {"vitis_hls_2024": "Vitis HLS 2024",
 LATENCY_COLUMNS = {"cycles": ("latency_cycles", "latency (cycles)"),
                    "wallclock": ("exec_time_ns", "wall-clock time")}
 
-# Reference palette (dataviz skill): series slot 1, text and grid tokens.
-SERIES = "#2a78d6"
+# Reference palette (dataviz skill): categorical slots 1-4 in fixed order, text
+# and grid tokens. Each category also has its own marker, so identity never
+# relies on color alone.
+CATEGORIES = [  # (legend label, benchmarks, color, marker)
+    ("Dynamatic, memory dependencies", {"matrix_power", "histogram"},
+     "#2a78d6", "o"),
+    ("Dynamatic, control dependencies", {"if_loop_add", "if_loop_mul"},
+     "#eb6834", "D"),
+    ("Dynamatic, speculative", {"newton_raphson", "backtrack"},
+     "#1baf7a", "^"),
+    ("Dynamatic, no dependencies", {"matvec", "fir"}, "#eda100", "v"),
+]
+OTHER = ("Dynamatic, other", "#e87ba4", "P")  # slot 5, unlisted benchmarks
 REFERENCE = "#e34948"  # baseline marker (palette red)
 SURFACE = "#fcfcfb"
 TEXT_PRIMARY = "#0b0b0b"
@@ -92,9 +103,19 @@ def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
     ax.axhline(1, color=TEXT_MUTED, lw=1, ls=(0, (4, 3)), zorder=1)
     ax.grid(True, which="major", color=GRID, lw=0.8, zorder=0)
 
-    ax.scatter([p[1] for p in points], [p[2] for p in points], s=64,
-               color=SERIES, edgecolor=SURFACE, linewidth=2, zorder=3,
-               label=dyn_label)
+    def category(bench):
+        for label, benches, color, marker in CATEGORIES:
+            if bench in benches:
+                return label, color, marker
+        return OTHER
+
+    groups = [(label, color, marker) for label, _, color, marker in CATEGORIES]
+    for label, color, marker in groups + [OTHER]:
+        group = [p for p in points if category(p[0])[0] == label]
+        if group:
+            ax.scatter([p[1] for p in group], [p[2] for p in group], s=64,
+                       marker=marker, color=color, edgecolor=SURFACE,
+                       linewidth=2, zorder=3, label=label)
     ax.scatter([1], [1], s=70, marker="s", color=REFERENCE,
                edgecolor=SURFACE, linewidth=2, zorder=4,
                label=f"{baseline_label} (reference)")
