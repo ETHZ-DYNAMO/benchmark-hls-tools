@@ -23,6 +23,11 @@ SIMULATOR="--simulator vsim"
 DISABLE_LSQ="--disable-lsq"
 DISABLE_LSQ=""
 
+# Set DYNAMATIC_SPECULATION=1 in a benchmark's bench.cfg to honor its
+# "#pragma DYN speculate".
+SPECULATION=""
+[ "${DYNAMATIC_SPECULATION:-0}" = 1 ] && SPECULATION="--speculation"
+
 # Dynamatic writes out/ next to the source file, so run on a copy of the
 # benchmark inside the build directory.
 WORK_DIR="$BUILD_DIR/dynamatic/$BENCH"
@@ -46,7 +51,7 @@ echo "set-dynamatic-path $DYNAMATIC_PATH; \
   set-src ./$BENCH.c; \
   set-fp-units-generator flopoco; \
   set-clock-period $CLOCK_PERIOD; \
-  compile $FAST_TOKEN $SHARING $BUFFER_ALGORITHM $MILP_SOLVER $DISABLE_LSQ; \
+  compile $FAST_TOKEN $SHARING $SPECULATION $BUFFER_ALGORITHM $MILP_SOLVER $DISABLE_LSQ; \
   write-hdl --hdl $HDL; \
   simulate $SIMULATOR --timeout $DYNAMATIC_SIM_TIMEOUT; \
   synthesize; \

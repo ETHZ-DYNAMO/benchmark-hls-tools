@@ -49,7 +49,9 @@ To add a benchmark, create `benchmarks/<bench>/<bench>.c` (plus headers) with a
 `main` that calls the kernel via `CALL_KERNEL`.
 
 `benchmarks/<bench>/bench.cfg` (optional, sourced by bash) can override `TOP`
-when the kernel name differs from the benchmark name.
+when the kernel name differs from the benchmark name, and set
+`DYNAMATIC_SPECULATION=1` to compile with Dynamatic's `--speculation` (used by
+`backtrack` and `newton_raphson`, which contain `#pragma DYN speculate`).
 
 ## 3. Run
 
@@ -107,6 +109,3 @@ Where the numbers come from (relative to `build/<tool>/<bench>/`):
   `faketime "@2021-12-31 00:00:00"`. csim/cosim run with the real clock because
   XSim fails to start under faketime. Override the date with
   `VIVADO_HLS_2019_FAKETIME`, or set it to `""` to disable.
-- `backtrack` and `newton_raphson` contain `#pragma DYN speculate`, which only
-  takes effect in Dynamatic's speculation flow; the plain `compile` used here
-  ignores it.
