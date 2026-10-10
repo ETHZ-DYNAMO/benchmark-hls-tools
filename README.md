@@ -44,6 +44,7 @@ are tracked in this repo's history. Changes from the original:
 - All benchmarks: `#pragma HLS pipeline II=1` on each innermost loop (in
   `matrix_power`, braces were added around the inner loop body). Dynamatic
   ignores `#pragma HLS`.
+- `matrix_power`: `mat` and `a` are `float` instead of `int`.
 
 To add a benchmark, create `benchmarks/<bench>/<bench>.c` (plus headers) with a
 `main` that calls the kernel via `CALL_KERNEL`.

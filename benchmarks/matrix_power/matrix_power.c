@@ -2,8 +2,8 @@
 #include "dynamatic/Integration.h"
 #include <stdlib.h>
 
-void matrix_power(inout_int_t mat[N][N], in_int_t row[N], in_int_t col[N],
-                  in_int_t a[N]) {
+void matrix_power(inout_float_t mat[N][N], in_int_t row[N], in_int_t col[N],
+                  in_float_t a[N]) {
   for (unsigned k = 1; k < N; k++) {
     for (unsigned p = 0; p < N; p++) {
 #pragma HLS pipeline II=1
@@ -13,10 +13,10 @@ void matrix_power(inout_int_t mat[N][N], in_int_t row[N], in_int_t col[N],
 }
 
 int main(void) {
-  inout_int_t mat[N][N];
+  inout_float_t mat[N][N];
   in_int_t row[N];
   in_int_t col[N];
-  in_int_t a[N];
+  in_float_t a[N];
 
   for (unsigned y = 0; y < N; ++y) {
     col[y] = rand() % N;
