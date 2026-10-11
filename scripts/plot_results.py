@@ -124,8 +124,8 @@ def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
 
     # Direct labels: right of the point by default; left when another point
     # sits where the label would go (or it would leave the axes); above when
-    # both sides are taken.
-    xmax = ax.get_xlim()[1]
+    # both sides are taken or would leave the axes.
+    xmin, xmax = ax.get_xlim()
 
     def neighbor(x, y, lo, hi):
         return any(lo < ox / x < hi and 1 / 1.15 < oy / y < 1.15
@@ -135,7 +135,7 @@ def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
         right_free = not neighbor(x, y, 1, 2.5) and x * 2.0 < xmax
         if right_free:
             offset, ha, va = (7, 0), "left", "center"
-        elif not neighbor(x, y, 1 / 2.5, 1):
+        elif not neighbor(x, y, 1 / 2.5, 1) and x / 2.0 > xmin:
             offset, ha, va = (-7, 0), "right", "center"
         else:
             offset, ha, va = (0, 7), "center", "bottom"
