@@ -1,12 +1,13 @@
 bench,tool,tool_version,status,target_cp,achieved_cp,latency_cycles,exec_time_ns,LUT,FF,DSP,BRAM
-backtrack,dynamatic,98ebeddb4,ok,6.0,11.674,2028,23674.9,1930,1204,1,0
-fir,dynamatic,98ebeddb4,ok,6.0,4.095,1005,4115.5,334,373,3,0
-histogram,dynamatic,98ebeddb4,ok,6.0,7.987,1052,8402.3,9563,2618,0,0
-if_loop_add,dynamatic,98ebeddb4,ok,6.0,5.848,1067,6239.8,1184,864,0,0
-if_loop_mul,dynamatic,98ebeddb4,ok,6.0,5.936,1027,6096.3,1207,765,1,0
-matrix_power,dynamatic,98ebeddb4,ok,6.0,7.475,703,5254.9,8995,2626,1,0
-matvec,dynamatic,98ebeddb4,ok,6.0,5.268,10106,53238.4,636,597,3,0
-newton_raphson,dynamatic,98ebeddb4,ok,6.0,6.998,906,6340.2,2545,1572,9,0
+backtrack,dynamatic,d4a73e56a,ok,6.0,12.125,2029,24601.6,1943,1205,1,0
+fir,dynamatic,d4a73e56a,ok,6.0,4.095,1005,4115.5,334,373,3,0
+histogram,dynamatic,d4a73e56a,ok,6.0,7.987,1052,8402.3,9563,2618,0,0
+if_loop_add,dynamatic,d4a73e56a,ok,6.0,5.848,1067,6239.8,1184,864,0,0
+if_loop_mul,dynamatic,d4a73e56a,ok,6.0,5.936,1027,6096.3,1207,765,1,0
+matrix_power,dynamatic,d4a73e56a,ok,6.0,7.475,703,5254.9,8995,2626,1,0
+matvec,dynamatic,d4a73e56a,ok,6.0,5.268,10106,53238.4,636,597,3,0
+newton_raphson,dynamatic,d4a73e56a,ok,6.0,7.005,906,6346.5,2554,1598,9,0
+subdiag,dynamatic,d4a73e56a,ok,6.0,11.327,226,2559.9,1822,1500,1,0
 backtrack,vitis_hls_2024,2024.2,ok,6.0,3.935,15014,59080.1,342,564,5,0
 fir,vitis_hls_2024,2024.2,ok,6.0,4.058,1005,4078.3,112,129,3,0
 histogram,vitis_hls_2024,2024.2,ok,6.0,4.207,4004,16844.8,446,435,0,0
@@ -15,6 +16,7 @@ if_loop_mul,vitis_hls_2024,2024.2,ok,6.0,4.01,3009,12066.1,387,587,5,0
 matrix_power,vitis_hls_2024,2024.2,ok,6.0,4.239,1529,6481.4,504,611,3,0
 matvec,vitis_hls_2024,2024.2,ok,6.0,4.058,10007,40608.4,136,222,4,0
 newton_raphson,vitis_hls_2024,2024.2,ok,6.0,5.89,400,2356.0,571,365,6,0
+subdiag,vitis_hls_2024,2024.2,ok,6.0,4.046,1211,4899.7,316,517,5,0
 backtrack,vivado_hls_2019,2019.1,ok,6.0,5.4,11012,59464.8,372,415,5,0
 fir,vivado_hls_2019,2019.1,ok,6.0,4.058,1005,4078.3,76,103,3,0
 histogram,vivado_hls_2019,2019.1,ok,6.0,5.085,5002,25435.2,445,250,0,0
@@ -23,3 +25,4 @@ if_loop_mul,vivado_hls_2019,2019.1,ok,6.0,5.445,3009,16384.0,443,448,5,0
 matrix_power,vivado_hls_2019,2019.1,ok,6.0,5.136,1906,9789.2,508,356,3,0
 matvec,vivado_hls_2019,2019.1,ok,6.0,4.058,10007,40608.4,144,172,4,0
 newton_raphson,vivado_hls_2019,2019.1,ok,6.0,14.737,102,1503.2,514,300,9,0
+subdiag,vivado_hls_2019,2019.1,ok,6.0,5.526,1011,5586.8,353,386,5,0
