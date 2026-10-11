@@ -44,6 +44,8 @@ CATEGORIES = [  # (legend label, benchmarks, color, marker)
     ("Dynamatic, no dependencies", {"matvec", "fir"}, "#eda100", "v"),
 ]
 OTHER = ("Dynamatic, other", "#e87ba4", "P")  # slot 5, unlisted benchmarks
+# Benchmarks that are run but left out of the plots (still in summary.csv).
+EXCLUDED = {"newton_raphson"}
 REFERENCE = "#e34948"  # baseline marker (palette red)
 SURFACE = "#fcfcfb"
 TEXT_PRIMARY = "#0b0b0b"
@@ -67,7 +69,7 @@ def dynamatic_commits(rows):
 
 def ratios(rows, baseline, lat_col, res_col):
     points = []
-    for bench in sorted({b for b, _ in rows}):
+    for bench in sorted({b for b, _ in rows} - EXCLUDED):
         dyn, base = rows.get((bench, "dynamatic")), rows.get((bench, baseline))
         if not dyn or not base:
             continue

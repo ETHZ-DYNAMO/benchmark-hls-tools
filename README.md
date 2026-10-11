@@ -96,6 +96,8 @@ column `tool_version`) is shown in the figure. Dynamatic's points are grouped
 by benchmark category (memory dependencies, control dependencies, speculative,
 no dependencies; `CATEGORIES` in the script), each with its own color and
 marker.
+Benchmarks in `EXCLUDED` (currently `newton_raphson`) are still run and kept in
+`summary.csv` but left out of the plots.
 
 Where the numbers come from (relative to `build/<tool>/<bench>/`):
 
