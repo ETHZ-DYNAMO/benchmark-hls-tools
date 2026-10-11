@@ -88,7 +88,8 @@ def fmt_ratio(v, _=None):
 
 
 def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
-    fig, ax = plt.subplots(figsize=(6.4, 5.2), dpi=150)
+    # 16:9 to fill a slide; legend on the right.
+    fig, ax = plt.subplots(figsize=(13.33, 7.5), dpi=150)
     fig.patch.set_facecolor(SURFACE)
     ax.set_facecolor(SURFACE)
     ax.set_xscale("log")
@@ -115,11 +116,13 @@ def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
     for label, color, marker in groups + [OTHER]:
         group = [p for p in points if category(p[0])[0] == label]
         if group:
-            ax.scatter([p[1] for p in group], [p[2] for p in group], s=64,
+            ax.scatter([p[1] for p in group], [p[2] for p in group],
+                       # Triangles look smaller than circles at equal area.
+                       s=230 if marker in "^v" else 160,
                        marker=marker, color=color, edgecolor=SURFACE,
-                       linewidth=2, zorder=3, label=label)
-    ax.scatter([1], [1], s=70, marker="s", color=REFERENCE,
-               edgecolor=SURFACE, linewidth=2, zorder=4,
+                       linewidth=2.5, zorder=3, label=label)
+    ax.scatter([1], [1], s=170, marker="s", color=REFERENCE,
+               edgecolor=SURFACE, linewidth=2.5, zorder=4,
                label=f"{baseline_label} (reference)")
 
     # Direct labels: right of the point by default; left when another point
@@ -134,38 +137,39 @@ def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
     for bench, x, y in points:
         right_free = not neighbor(x, y, 1, 2.5) and x * 2.0 < xmax
         if right_free:
-            offset, ha, va = (7, 0), "left", "center"
+            offset, ha, va = (11, 0), "left", "center"
         elif not neighbor(x, y, 1 / 2.5, 1) and x / 2.0 > xmin:
-            offset, ha, va = (-7, 0), "right", "center"
+            offset, ha, va = (-11, 0), "right", "center"
         else:
-            offset, ha, va = (0, 7), "center", "bottom"
+            offset, ha, va = (0, 11), "center", "bottom"
         ax.annotate(bench, (x, y), xytext=offset, textcoords="offset points",
-                    ha=ha, va=va, fontsize=8.5, color=TEXT_SECONDARY,
+                    ha=ha, va=va, fontsize=15, color=TEXT_SECONDARY,
                     zorder=5)
 
     # Quadrant hint: lower-left is where Dynamatic wins on both axes.
     ax.text(0.02, 0.03, "← Dynamatic faster, smaller ↓", transform=ax.transAxes,
-            fontsize=8, color=TEXT_MUTED, va="bottom", ha="left")
+            fontsize=13, color=TEXT_MUTED, va="bottom", ha="left")
 
     for axis in (ax.xaxis, ax.yaxis):
         axis.set_major_locator(LogLocator(base=10, subs=(1.0, 2.0, 5.0)))
         axis.set_major_formatter(FuncFormatter(fmt_ratio))
         axis.set_minor_formatter(NullFormatter())
-    ax.tick_params(colors=TEXT_SECONDARY, labelsize=8.5)
+    ax.tick_params(colors=TEXT_SECONDARY, labelsize=14)
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
     for side in ("left", "bottom"):
         ax.spines[side].set_color(TEXT_MUTED)
 
     ax.set_xlabel(f"Dynamatic {lat_label} / {baseline_label}",
-                  color=TEXT_PRIMARY, fontsize=9.5)
+                  color=TEXT_PRIMARY, fontsize=16)
     ax.set_ylabel(f"Dynamatic {res_col} / {baseline_label}",
-                  color=TEXT_PRIMARY, fontsize=9.5)
+                  color=TEXT_PRIMARY, fontsize=16)
     ax.set_title(f"{dyn_label} vs. {baseline_label}: {res_col} vs. {lat_label}",
-                 color=TEXT_PRIMARY, fontsize=11, loc="left")
-    # Below the axes so it never covers a point or label.
-    leg = ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.14), ncol=2,
-                    fontsize=8, frameon=False)
+                 color=TEXT_PRIMARY, fontsize=20, loc="left")
+    # Outside the axes on the right so it never covers a point or label.
+    leg = ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5),
+                    fontsize=18, frameon=False, labelspacing=1.0,
+                    markerscale=1.2)
     for t in leg.get_texts():
         t.set_color(TEXT_SECONDARY)
 
