@@ -38,8 +38,9 @@ Experiment parameters live in `config.sh`:
   hardcoded in Dynamatic's `synthesize.sh`) apply to every flow.
 
 The benchmarks in `benchmarks/` were copied from Dynamatic's `integration-test/`
-(commit `bfcb8bc2a`) and are maintained here; local changes (e.g. HLS pragmas)
-are tracked in this repo's history. Changes from the original:
+(commit `bfcb8bc2a`; `subdiag` from `d4a73e56a`) and are maintained here;
+local changes (e.g. HLS pragmas) are tracked in this repo's history. Changes
+from the original:
 
 - All benchmarks: `#pragma HLS pipeline II=1` on each innermost loop (in
   `matrix_power`, braces were added around the inner loop body). Dynamatic
@@ -52,7 +53,8 @@ To add a benchmark, create `benchmarks/<bench>/<bench>.c` (plus headers) with a
 `benchmarks/<bench>/bench.cfg` (optional, sourced by bash) can override `TOP`
 when the kernel name differs from the benchmark name, and set
 `DYNAMATIC_SPECULATION=1` to compile with Dynamatic's `--speculation` (used by
-`backtrack` and `newton_raphson`, which contain `#pragma DYN speculate`).
+`backtrack`, `newton_raphson` and `subdiag`, which contain
+`#pragma DYN speculate`).
 
 ## 3. Run
 

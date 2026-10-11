@@ -39,7 +39,7 @@ CATEGORIES = [  # (legend label, benchmarks, color, marker)
      "#2a78d6", "o"),
     ("Dynamatic, control dependencies", {"if_loop_add", "if_loop_mul"},
      "#eb6834", "D"),
-    ("Dynamatic, speculative", {"newton_raphson", "backtrack"},
+    ("Dynamatic, speculative", {"newton_raphson", "backtrack", "subdiag"},
      "#1baf7a", "^"),
     ("Dynamatic, no dependencies", {"matvec", "fir"}, "#eda100", "v"),
 ]
