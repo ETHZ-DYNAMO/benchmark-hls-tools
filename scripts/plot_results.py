@@ -2,10 +2,11 @@
 """Plot Dynamatic's resources vs. latency, normalized to an HLS baseline.
 
 Usage: scripts/plot_results.py [--latency cycles|wallclock|both]
-                               [--resource LUT|FF|DSP]
+                               [--resource LUT|FF|DSP|Slice ...]
                                [--summary FILE] [--out-dir DIR]
 
-One figure per baseline (Vitis HLS 2024, Vivado HLS 2019) and latency metric.
+One figure per baseline (Vitis HLS 2024, Vivado HLS 2019), latency metric and
+resource (default: LUT and Slice).
 For each benchmark, Dynamatic's point is
 (latency_dyn / latency_base, resource_dyn / resource_base), so the baseline is
 always at (1, 1).
@@ -17,17 +18,20 @@ Latency metrics:
 """
 import argparse
 import csv
+from math import hypot
 from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.transforms import Bbox  # noqa: E402
 from matplotlib.ticker import FuncFormatter, LogLocator, NullFormatter  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent
 BASELINES = {"vitis_hls_2024": "Vitis HLS 2024",
              "vivado_hls_2019": "Vivado HLS 2019"}
+RESOURCE_LABELS = {"Slice": "FPGA slices"}  # axis/title text; default: column
 LATENCY_COLUMNS = {"cycles": ("latency_cycles", "latency (cycles)"),
                    "wallclock": ("exec_time_ns", "wall-clock time")}
 
@@ -83,11 +87,70 @@ def ratios(rows, baseline, lat_col, res_col):
     return points
 
 
+NEAR_PX = 40  # markers closer than this (pixels) count as near-coincident
+# Label positions tried in order: (offset in points, ha, va).
+LABEL_SLOTS = [((11, 0), "left", "center"), ((-11, 0), "right", "center"),
+               ((0, 12), "center", "bottom"), ((0, -12), "center", "top"),
+               ((9, 9), "left", "bottom"), ((9, -9), "left", "top"),
+               ((-9, 9), "right", "bottom"), ((-9, -9), "right", "top")]
+
+
+def overlap(a, b):
+    """Intersection area of two display-space Bboxes (0 if disjoint)."""
+    w = min(a.x1, b.x1) - max(a.x0, b.x0)
+    h = min(a.y1, b.y1) - max(a.y0, b.y0)
+    return w * h if w > 0 and h > 0 else 0.0
+
+
+def place_labels(fig, ax, points, hint):
+    """Direct labels: take the first slot that clears every marker, the labels
+    already placed, the hint and the axes edges; else the least-overlapping
+    slot. When another marker is within NEAR_PX, slots pointing away from it
+    are tried first, so near-coincident points keep their labels apart and
+    unambiguous. Run after the layout is final (positions are in pixels)."""
+    renderer = fig.canvas.get_renderer()
+    # Marker footprints, slightly padded; includes the reference at (1, 1).
+    half = 9 * fig.dpi / 72
+    pixels = ax.transData.transform([(x, y) for _, x, y in points] + [(1.0, 1.0)])
+    obstacles = [Bbox.from_extents(px - half, py - half, px + half, py + half)
+                 for px, py in pixels]
+    obstacles.append(hint.get_window_extent(renderer))
+    frame = ax.get_window_extent(renderer)
+    for i, (bench, x, y) in enumerate(points):
+        slots = LABEL_SLOTS
+        others = [q for j, q in enumerate(pixels) if j != i]
+        nx, ny = min(others, key=lambda q: hypot(*(q - pixels[i])))
+        dx, dy = nx - pixels[i][0], ny - pixels[i][1]
+        if hypot(dx, dy) < NEAR_PX:
+            slots = sorted(LABEL_SLOTS, key=lambda sl: (sl[0][0] * dx + sl[0][1] * dy)
+                           / hypot(*sl[0]))
+        best = None
+        for offset, ha, va in slots:
+            ann = ax.annotate(bench, (x, y), xytext=offset,
+                              textcoords="offset points", ha=ha, va=va,
+                              fontsize=15, color=TEXT_SECONDARY, zorder=5)
+            box = ann.get_window_extent(renderer)
+            cost = sum(overlap(box, o) for o in obstacles)
+            outside = (box.width * box.height
+                       - overlap(box, frame))  # area beyond the axes
+            cost += 10 * outside
+            if best is None or cost < best[0]:
+                if best is not None:
+                    best[1].remove()
+                best = (cost, ann, box)
+            else:
+                ann.remove()
+            if cost == 0:
+                break
+        obstacles.append(best[2])
+
+
 def fmt_ratio(v, _=None):
     return f"{v:g}×"
 
 
 def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
+    res_label = RESOURCE_LABELS.get(res_col, res_col)
     # 16:9 to fill a slide; legend on the right.
     fig, ax = plt.subplots(figsize=(13.33, 7.5), dpi=150)
     fig.patch.set_facecolor(SURFACE)
@@ -125,30 +188,10 @@ def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
                edgecolor=SURFACE, linewidth=2.5, zorder=4,
                label=f"{baseline_label} (reference)")
 
-    # Direct labels: right of the point by default; left when another point
-    # sits where the label would go (or it would leave the axes); above when
-    # both sides are taken or would leave the axes.
-    xmin, xmax = ax.get_xlim()
-
-    def neighbor(x, y, lo, hi):
-        return any(lo < ox / x < hi and 1 / 1.15 < oy / y < 1.15
-                   for _, ox, oy in points if (ox, oy) != (x, y))
-
-    for bench, x, y in points:
-        right_free = not neighbor(x, y, 1, 2.5) and x * 2.0 < xmax
-        if right_free:
-            offset, ha, va = (11, 0), "left", "center"
-        elif not neighbor(x, y, 1 / 2.5, 1) and x / 2.0 > xmin:
-            offset, ha, va = (-11, 0), "right", "center"
-        else:
-            offset, ha, va = (0, 11), "center", "bottom"
-        ax.annotate(bench, (x, y), xytext=offset, textcoords="offset points",
-                    ha=ha, va=va, fontsize=15, color=TEXT_SECONDARY,
-                    zorder=5)
-
     # Quadrant hint: lower-left is where Dynamatic wins on both axes.
-    ax.text(0.02, 0.03, "← Dynamatic faster, smaller ↓", transform=ax.transAxes,
-            fontsize=13, color=TEXT_MUTED, va="bottom", ha="left")
+    hint = ax.text(0.02, 0.03, "← Dynamatic faster, smaller ↓",
+                   transform=ax.transAxes, fontsize=13, color=TEXT_MUTED,
+                   va="bottom", ha="left")
 
     for axis in (ax.xaxis, ax.yaxis):
         axis.set_major_locator(LogLocator(base=10, subs=(1.0, 2.0, 5.0)))
@@ -162,9 +205,9 @@ def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
 
     ax.set_xlabel(f"Dynamatic {lat_label} / {baseline_label}",
                   color=TEXT_PRIMARY, fontsize=16)
-    ax.set_ylabel(f"Dynamatic {res_col} / {baseline_label}",
+    ax.set_ylabel(f"Dynamatic {res_label} / {baseline_label}",
                   color=TEXT_PRIMARY, fontsize=16)
-    ax.set_title(f"{dyn_label} vs. {baseline_label}: {res_col} vs. {lat_label}",
+    ax.set_title(f"{dyn_label} vs. {baseline_label}: {res_label} vs. {lat_label}",
                  color=TEXT_PRIMARY, fontsize=20, loc="left")
     # Outside the axes on the right so it never covers a point or label.
     leg = ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5),
@@ -174,6 +217,7 @@ def plot(points, baseline_label, lat_label, res_col, out_base, dyn_label):
         t.set_color(TEXT_SECONDARY)
 
     fig.tight_layout()
+    place_labels(fig, ax, points, hint)
     for ext in ("pdf", "png"):
         fig.savefig(f"{out_base}.{ext}", facecolor=SURFACE)
     plt.close(fig)
@@ -184,7 +228,8 @@ def main():
     ap = argparse.ArgumentParser(description=(__doc__ or "").splitlines()[0])
     ap.add_argument("--latency", choices=[*LATENCY_COLUMNS, "both"],
                     default="both")
-    ap.add_argument("--resource", choices=["LUT", "FF", "DSP"], default="LUT")
+    ap.add_argument("--resource", nargs="+", choices=["LUT", "FF", "DSP", "Slice"],
+                    default=["LUT", "Slice"])
     ap.add_argument("--summary", type=Path, default=REPO / "results/summary.csv")
     ap.add_argument("--out-dir", type=Path, default=REPO / "results/plots")
     args = ap.parse_args()
@@ -198,15 +243,16 @@ def main():
     args.out_dir.mkdir(parents=True, exist_ok=True)
     metrics = (list(LATENCY_COLUMNS) if args.latency == "both"
                else [args.latency])
-    for metric in metrics:
-        lat_col, lat_label = LATENCY_COLUMNS[metric]
-        for tool, label in BASELINES.items():
-            points = ratios(rows, tool, lat_col, args.resource)
-            for bench, x, y in points:
-                print(f"  {tool:16} {bench:15} {metric:9} {x:6.3f}x  "
-                      f"{args.resource} {y:7.2f}x")
-            out = args.out_dir / f"dynamatic_vs_{tool}_{args.resource}_{metric}"
-            plot(points, label, lat_label, args.resource, out, dyn_label)
+    for res in args.resource:
+        for metric in metrics:
+            lat_col, lat_label = LATENCY_COLUMNS[metric]
+            for tool, label in BASELINES.items():
+                points = ratios(rows, tool, lat_col, res)
+                for bench, x, y in points:
+                    print(f"  {tool:16} {bench:15} {metric:9} {x:6.3f}x  "
+                          f"{res} {y:7.2f}x")
+                out = args.out_dir / f"dynamatic_vs_{tool}_{res}_{metric}"
+                plot(points, label, lat_label, res, out, dyn_label)
 
 
 if __name__ == "__main__":

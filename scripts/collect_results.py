@@ -17,7 +17,8 @@ from typing import Any, Callable
 REPO = Path(__file__).resolve().parent.parent
 TOOLS = ["dynamatic", "vitis_hls_2024", "vivado_hls_2019"]
 FIELDS = ["bench", "tool", "tool_version", "status", "target_cp", "achieved_cp",
-          "latency_cycles", "exec_time_ns", "LUT", "FF", "DSP", "BRAM"]
+          "latency_cycles", "exec_time_ns", "LUT", "FF", "DSP", "BRAM",
+          "Slice"]
 
 
 def read(path):
@@ -38,7 +39,8 @@ def parse_utilization(text):
         return search(r"^\|\s*" + re.escape(name) + r"\s*\|\s*([\d.]+)\s*\|",
                       text)
     return {"LUT": row("Slice LUTs"), "FF": row("Slice Registers"),
-            "DSP": row("DSPs"), "BRAM": row("Block RAM Tile")}
+            "DSP": row("DSPs"), "BRAM": row("Block RAM Tile"),
+            "Slice": row("Slice")}
 
 
 def parse_slack(text):

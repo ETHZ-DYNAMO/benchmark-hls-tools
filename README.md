@@ -85,12 +85,13 @@ Each run gets `RUN_TIMEOUT` seconds (default 3600) and `RUN_MEM_MAX` memory
 - `achieved_cp` = target clock period - worst setup slack
 - `latency_cycles` from cosimulation
 - `exec_time_ns` = latency_cycles * achieved_cp (wall-clock time)
-- `LUT`, `FF`, `DSP`, `BRAM`
+- `LUT`, `FF`, `DSP`, `BRAM`, `Slice` (post-route utilization)
 
 `scripts/plot_results.py` plots, per baseline (Vitis HLS 2024, Vivado HLS 2019),
-Dynamatic's LUTs vs. latency normalized to the baseline (baseline at (1, 1)),
+Dynamatic's LUTs and FPGA slices vs. latency normalized to the baseline
+(baseline at (1, 1)),
 once with latency in cycles and once with wall-clock time (`exec_time_ns`):
-`results/plots/dynamatic_vs_<baseline>_LUT_{cycles,wallclock}.{pdf,png}`.
+`results/plots/dynamatic_vs_<baseline>_{LUT,Slice}_{cycles,wallclock}.{pdf,png}`.
 The Dynamatic commit (recorded per run in `build/dynamatic/<bench>/dynamatic_commit.txt`,
 column `tool_version`) is shown in the figure. Dynamatic's points are grouped
 by benchmark category (memory dependencies, control dependencies, speculative,
