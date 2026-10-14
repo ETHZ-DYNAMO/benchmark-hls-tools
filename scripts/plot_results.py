@@ -238,8 +238,7 @@ def main():
     commits = dynamatic_commits(rows)
     if len(commits) > 1:
         print(f"warning: results mix Dynamatic commits {', '.join(commits)}")
-    dyn_label = (f"Dynamatic ({', '.join(commits)})" if commits
-                 else "Dynamatic (commit unknown)")
+    dyn_label = "Dynamatic"
     args.out_dir.mkdir(parents=True, exist_ok=True)
     metrics = (list(LATENCY_COLUMNS) if args.latency == "both"
                else [args.latency])

@@ -4,8 +4,9 @@
 source "$(dirname "$0")/../config.sh"
 load_bench "$1" || exit 1
 
-# Options: on-merges,fpga20,fpl22
-BUFFER_ALGORITHM="--buffer-algorithm fpga20"
+# Options: on-merges,fpga20,fpl22,fpga24
+# Set DYNAMATIC_BUFFER_ALGORITHM in a benchmark's bench.cfg to override.
+BUFFER_ALGORITHM="--buffer-algorithm ${DYNAMATIC_BUFFER_ALGORITHM:-fpga20}"
 SHARING="--sharing"
 SHARING=""
 # Options: vhdl,verilog
@@ -27,6 +28,17 @@ DISABLE_LSQ=""
 # "#pragma DYN speculate".
 SPECULATION=""
 [ "${DYNAMATIC_SPECULATION:-0}" = 1 ] && SPECULATION="--speculation"
+
+# Set DYNAMATIC_RIGIDIFICATION=1 in a benchmark's bench.cfg to use model
+# checking to remove redundant handshake logic (compile --rigidification).
+RIGIDIFICATION=""
+[ "${DYNAMATIC_RIGIDIFICATION:-0}" = 1 ] && RIGIDIFICATION="--rigidification"
+
+# Set DYNAMATIC_LSQ_SIZING=1 in a benchmark's bench.cfg to size its LSQs from
+# the CFDFCs of buffer placement (compile --lsq-sizing); otherwise LSQs keep
+# the default depth.
+LSQ_SIZING=""
+[ "${DYNAMATIC_LSQ_SIZING:-0}" = 1 ] && LSQ_SIZING="--lsq-sizing"
 
 # Dynamatic writes out/ next to the source file, so run on a copy of the
 # benchmark inside the build directory.
@@ -51,12 +63,12 @@ echo "set-dynamatic-path $DYNAMATIC_PATH; \
   set-src ./$BENCH.c; \
   set-fp-units-generator flopoco; \
   set-clock-period $CLOCK_PERIOD; \
-  compile $FAST_TOKEN $SHARING $SPECULATION $BUFFER_ALGORITHM $MILP_SOLVER $DISABLE_LSQ; \
+  compile $FAST_TOKEN $SHARING $SPECULATION $RIGIDIFICATION $LSQ_SIZING $BUFFER_ALGORITHM $MILP_SOLVER $DISABLE_LSQ; \
   write-hdl --hdl $HDL; \
   simulate $SIMULATOR --timeout $DYNAMATIC_SIM_TIMEOUT; \
   synthesize; \
   exit" \
-  | "$DYNAMATIC_PATH/bin/dynamatic" --exit-on-failure --debug
+  | "$DYNAMATIC_PATH/bin/dynamatic" --exit-on-failure
 status=${PIPESTATUS[1]}
 
 echo "======================================= "

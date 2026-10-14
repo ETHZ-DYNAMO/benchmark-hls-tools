@@ -8,7 +8,7 @@
 #include "dynamatic/Integration.h"
 #include "stdlib.h"
 
-int matvec(in_int_t m[N][N], in_int_t v[N], out_int_t out[N]) {
+void matvec(in_int_t m[N][N], in_int_t v[N], out_int_t out[N]) {
   int tmp = 0;
   for (unsigned i = 0; i < N; i++) {
     tmp = 0;
@@ -18,7 +18,6 @@ int matvec(in_int_t m[N][N], in_int_t v[N], out_int_t out[N]) {
     }
     out[i] = tmp;
   }
-  return tmp;
 }
 
 int main(void) {

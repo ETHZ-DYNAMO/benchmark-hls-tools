@@ -92,8 +92,8 @@ Dynamatic's LUTs and FPGA slices vs. latency normalized to the baseline
 (baseline at (1, 1)),
 once with latency in cycles and once with wall-clock time (`exec_time_ns`):
 `results/plots/dynamatic_vs_<baseline>_{LUT,Slice}_{cycles,wallclock}.{pdf,png}`.
-The Dynamatic commit (recorded per run in `build/dynamatic/<bench>/dynamatic_commit.txt`,
-column `tool_version`) is shown in the figure. Dynamatic's points are grouped
+The Dynamatic commit is recorded per run in `build/dynamatic/<bench>/dynamatic_commit.txt`
+(column `tool_version`); the script warns when the results mix commits. Dynamatic's points are grouped
 by benchmark category (memory dependencies, control dependencies, speculative,
 no dependencies; `CATEGORIES` in the script), each with its own color and
 marker.
